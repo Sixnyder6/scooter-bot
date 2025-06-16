@@ -1,0 +1,27 @@
+# Файл: .gitignore (создать в корне проекта)
+
+# Секретные файлы
+.env
+credentials/
+scooteracomulator-1d3a66b4a345.json
+
+# База данных и временные файлы
+data/bot_data.db
+temp/
+history_update.json
+user_stats.json
+
+# Специфичные для Python файлы
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Виртуальное окружение
+.venv
+venv/
+env/
+
+# Специфичные для IDE/редакторов файлы
+.idea/
+.vscode/

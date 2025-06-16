@@ -1,0 +1,49 @@
+<!-- Файл: stats_template.html (заменить содержимое stats_preview.html) -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Превью статистики</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background-color:#1e1e1e;color:#e0e0e0;padding:20px;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}.message-container{background-color:#2a2a2a;border-radius:12px;max-width:500px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.4);overflow:hidden}.text-caption{padding:20px;line-height:1.6}.text-caption h2{font-size:1.5rem;margin:0 0 15px;color:#fff;font-weight:700}.text-caption p{margin:15px 0;color:#b0b0b0}.text-caption strong{color:#fff;font-weight:600}.stat-item{display:flex;justify-content:space-between;align-items:center;padding:4px 0}.stat-item .value{font-weight:700;color:#fff;font-size:1.1rem}.progress-bar-container{background-color:#444;border-radius:8px;height:12px;overflow:hidden;margin-top:8px}.progress-bar{height:100%;width:0;background:linear-gradient(90deg,rgba(23,162,184,1) 0%,rgba(0,123,255,1) 100%);border-radius:8px;transition:width 1.5s ease-in-out}.graph-image-container{background-color:#1e1e1e;padding:20px}
+    </style>
+</head>
+<body>
+    <div class="message-container">
+        <div class="text-caption">
+            <h2>👤 Ваша статистика, {{ user_first_name }}</h2>
+            <p>
+                <strong>🗓️ За сегодня ({{ current_date }}):</strong><br>
+                <div class="stat-item"><span>• Сделано самокатов:</span><span class="value count-up">{{ today_count }}</span></div>
+                <div class="stat-item"><span>• Среднее время:</span><span class="value">{{ avg_time_today }}</span></div>
+                <div class="stat-item"><span>• Дубликаты:</span><span class="value">{{ duplicates_today }}</span></div>
+                <div class="stat-item"><span>• Рейтинг за день:</span><span class="value">{{ rank_today }} из {{ total_users_today }}</span></div>
+            </p>
+            <p>
+                <strong>🎯 За декаду ({{ decade_dates }}):</strong><br>
+                <span>Прогресс: <strong>{{ decade_progress }} / {{ decade_norm }}</strong></span>
+                <div class="progress-bar-container"><div class="progress-bar" id="decadeProgressBar"></div></div>
+                <div class="stat-item" style="margin-top: 8px;"><span>• Осталось до премии:</span><span class="value">{{ remaining_for_premium }}</span></div>
+            </p>
+            <p>
+                <strong>🚀 За все время:</strong><br>
+                <div class="stat-item"><span>• Общий результат:</span><span class="value count-up">{{ overall_total }}</span></div>
+                <div class="stat-item"><span>• Лучший день:</span><span class="value">{{ best_day_count }} ({{ best_day_date }})</span></div>
+                <div class="stat-item"><span>• Ранг в компании:</span><span class="value">{{ overall_rank }} место</span></div>
+            </p>
+        </div>
+        <div class="graph-image-container">
+            <canvas id="hourlyChart"></canvas>
+            <canvas id="weeklyChart" style="margin-top: 20px;"></canvas>
+        </div>
+    </div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{const progressBar=document.getElementById('decadeProgressBar');if(progressBar){const progressPercentage=({{decade_progress}}/{{decade_norm}})*100;setTimeout(()=>{progressBar.style.width=`${progressPercentage}%`},300)}
+document.querySelectorAll('.count-up').forEach(el=>{const finalValue=parseInt(el.textContent,10);if(isNaN(finalValue)||finalValue===0){el.textContent=finalValue;return}
+el.textContent='0';let startValue=0;const duration=1500;const stepTime=Math.max(1,Math.floor(duration/finalValue));const timer=setInterval(()=>{startValue+=1;if(startValue>=finalValue){el.textContent=finalValue;clearInterval(timer)}else{el.textContent=startValue}},stepTime)})}
+);Chart.defaults.color='#a0a0a0';Chart.defaults.borderColor='rgba(255, 255, 255, 0.1)';const hourlyData={labels:{{hourly_labels_js|safe}},datasets:[{label:'Самокатов в час',data:{{hourly_data_js|safe}},backgroundColor:'rgba(0, 123, 255, 0.6)',borderColor:'rgba(0, 123, 255, 1)',borderWidth:1,borderRadius:4}]};const weeklyData={labels:{{weekly_labels_js|safe}},datasets:[{label:'Самокатов в день',data:{{weekly_data_js|safe}},backgroundColor:'rgba(23, 162, 184, 0.6)',borderColor:'rgba(23, 162, 184, 1)',borderWidth:1,borderRadius:4,tension:0.3,fill:true}]};new Chart(document.getElementById('hourlyChart'),{type:'bar',data:hourlyData,options:{plugins:{title:{display:true,text:'Производительность сегодня (по часам)',color:'#ffffff',font:{size:16}},legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.1)'}},x:{grid:{display:false}}},responsive:true}});new Chart(document.getElementById('weeklyChart'),{type:'line',data:weeklyData,options:{plugins:{title:{display:true,text:'Производительность за последние 7 дней',color:'#ffffff',font:{size:16}},legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.1)'}},x:{grid:{display:false}}},responsive:true}});
+</script>
+</body>
+</html>
