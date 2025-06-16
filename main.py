@@ -1,4 +1,4 @@
-# Файл: main.py (Версия с удаленным обработчиком для Web App)
+# Файл: main.py (ФИНАЛЬНАЯ, БЛЯДЬ, ВЕРСИЯ)
 
 import os
 import re
@@ -128,6 +128,13 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_id = update.message.from_user.id
     text = update.message.text
     if not utils.is_user_allowed(user_id): return
+
+    # Проверяем, является ли текст названием кнопки, которую нужно игнорировать
+    # Это предотвращает краш, когда пользователь нажимает WebApp кнопку
+    if text == config.BUTTON_MY_STATS:
+        logging.info(f"Пользователь {user_id} нажал WebApp кнопку 'Моя статистика'. Игнорируем текстовое сообщение.")
+        return
+
     if utils.is_special_user(user_id) and user_broadcast_state.get(user_id):
         await send_broadcast_message(update, context, text=text)
     elif NUMBER_PATTERN.search(text):
@@ -135,7 +142,14 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         await process_and_add_scooter(user_id, number)
         await update.message.reply_text(f"Самокат {number} сохранён.")
     else:
-        await update.message.reply_text("Команда не распознана.")
+        # Если это не команда и не номер, проверяем, не является ли это текстом с другой кнопки
+        # Это нужно, чтобы бот не отвечал "Команда не распознана" на каждую кнопку
+        all_buttons = [config.BUTTON_MY_SHIFTS, config.BUTTON_RETURN, config.BUTTON_CONTACT_ADMIN, config.BUTTON_TABLE,
+                       config.BUTTON_VYGRUZKA, config.BUTTON_TODAY_REPORT, config.BUTTON_DEKADA_1,
+                       config.BUTTON_DEKADA_2, config.BUTTON_DEKADA_3, config.BUTTON_BROADCAST,
+                       config.BUTTON_ACCEPT_BROADCAST, config.BUTTON_SKIP_BROADCAST, config.BUTTON_INFO]
+        if text not in all_buttons:
+            await update.message.reply_text("Команда не распознана.")
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -161,19 +175,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         os.remove(file_path)
     except OSError as e:
         logging.error(f"Не удалось удалить временный файл {file_path}: {e}")
-
-# ==============================================================================
-# <<< ИЗМЕНЕНИЕ ЗДЕСЬ: Эта функция больше не нужна, так как кнопка Web App >>>
-# <<< обрабатывается клиентом Telegram, а не ботом.                      >>>
-# ==============================================================================
-# async def handle_my_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     user_id = update.message.from_user.id
-#     if not utils.is_user_allowed(user_id): return
-#     await context.bot.send_chat_action(chat_id=user_id, action=ChatAction.TYPING)
-#     stats_data = await db.get_personal_stats(user_id)
-#     user_name = utils.USER_NAMES.get(user_id, "Пользователь")
-#     message = utils.format_personal_stats_message(user_name, stats_data)
-#     await update.message.reply_text(message, parse_mode="Markdown")
 
 
 async def handle_vygruzka(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -237,7 +238,8 @@ async def handle_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photo_path = config.INFO_PHOTOS_DIR / filename
         if photo_path.exists():
             try:
-                await context.bot.send_photo(chat_id=update.message.chat_id, photo=photo_path, caption=caption, parse_mode="Markdown")
+                await context.bot.send_photo(chat_id=update.message.chat_id, photo=photo_path, caption=caption,
+                                             parse_mode="Markdown")
             except Exception as e:
                 logging.error(f"Не удалось отправить инфо-фото {filename}: {e}")
         else:
@@ -245,8 +247,10 @@ async def handle_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def rotate_image(image, angle):
-    (h, w) = image.shape[:2]; center = (w / 2, h / 2)
-    M = cv2.getRotationMatrix2D(center, angle, 1.0); return cv2.warpAffine(image, M, (w, h))
+    (h, w) = image.shape[:2];
+    center = (w / 2, h / 2)
+    M = cv2.getRotationMatrix2D(center, angle, 1.0);
+    return cv2.warpAffine(image, M, (w, h))
 
 
 def extract_number_from_image(image_path: str) -> Optional[str]:
@@ -273,7 +277,7 @@ async def main():
     application.add_handler(CommandHandler("start", start))
 
     button_handlers = {
-        # config.BUTTON_MY_STATS: handle_my_stats, # <-- УДАЛЕНА ЭТА СТРОКА
+        # ЭТОЙ СУКИ БОЛЬШЕ НЕТ, ТЕПЕРЬ ВСЁ БУДЕТ ЗАЕБИСЬ
         config.BUTTON_MY_SHIFTS: handle_my_shifts,
         config.BUTTON_RETURN: start,
         config.BUTTON_CONTACT_ADMIN: handle_contact_admin,
@@ -302,5 +306,3 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
-
-    print("--- Этот print для сброса кэша Railway ---")
