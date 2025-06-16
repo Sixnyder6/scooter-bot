@@ -272,7 +272,8 @@ def extract_number_from_image(image_path: str) -> Optional[str]:
 async def main():
     utils.load_user_data()
     await db.init_db()
-    application = Application.builder().token(config.BOT_TOKEN).build()
+    # ВРЕМЕННАЯ ХУЙНЯ ДЛЯ ТЕСТА
+    application = Application.builder().token("7839713101:AAFcPH9XPx5aZOI52IBbLXKzNwK4QB4F47E").build()
 
     application.add_handler(CommandHandler("start", start))
 
